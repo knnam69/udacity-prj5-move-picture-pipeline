@@ -48,7 +48,7 @@ jobs:
           pipenv run lint
 
   test:
-    name: Backend Testing
+    name: BE Testing
     runs-on: ubuntu-latest
     defaults:
       run:
