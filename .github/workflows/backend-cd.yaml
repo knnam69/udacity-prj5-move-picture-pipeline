@@ -1,25 +1,23 @@
 name: Backend Continuous Deployment
 
 on:
-  # This allows running on-demand
   workflow_dispatch:
   push:
     branches:
       - main
     paths:
-      # This will only run on changes to the backend code
-      - 'backend/**'
+      - 'starter/backend/**'
 
 env:
   PYTHON_VERSION: 3.11
 
 jobs:
   lint:
-    name: Backend Linting
+    name: BE Linting
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./starter/backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -54,7 +52,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./starter/backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -82,7 +80,7 @@ jobs:
     needs: [lint, test]
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./starter/backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -119,9 +117,6 @@ jobs:
           REPOSITORY: backend
           IMAGE_TAG: latest
         run: |
-          echo "Registry: $REGISTRY"
-          echo "Repository: $REPOSITORY"
-          echo "Image Tag: $IMAGE_TAG"
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG .
           docker images
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
@@ -158,9 +153,9 @@ jobs:
       - name: Update kubeconfig
         run: aws eks update-kubeconfig --name cluster
 
-      - name: Run init.sh
-        run: ./init.sh || true
-        working-directory: ./setup
+      # - name: Run init.sh
+      #   run: ./init.sh || true
+      #   working-directory: ./setup
 
       - name: Set Docker image in Kustomize
         env:
@@ -168,8 +163,8 @@ jobs:
           REPOSITORY: backend
           IMAGE_TAG: latest
         run: kustomize edit set image backend=$REGISTRY/$REPOSITORY:$IMAGE_TAG
-        working-directory: ./backend/k8s
+        working-directory: ./starter/backend/k8s
 
       - name: Apply Kubernetes resources
         run: kustomize build | kubectl apply -f -
-        working-directory: ./backend/k8s
+        working-directory: ./starter/backend/k8s

@@ -1,25 +1,23 @@
 name: Backend Continuous Integration
 
 on:
-  # This allows running on-demand
   workflow_dispatch:
   pull_request:
     branches:
       - main
     paths:
-      # This will only run on changes to the backend code
-      - "backend/**"
+      - "starter/backend/**"
 
 env:
   PYTHON_VERSION: 3.11
 
 jobs:
   lint:
-    name: Backend run lint
+    name: BE Linting
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./starter/backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -50,11 +48,11 @@ jobs:
           pipenv run lint
 
   test:
-    name: Backend run test
+    name: BE Tetsting
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./starter/backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -82,7 +80,7 @@ jobs:
     needs: [lint, test]
     defaults:
       run:
-        working-directory: ./backend
+        working-directory: ./starter/backend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3

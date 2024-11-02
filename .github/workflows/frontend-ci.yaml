@@ -84,17 +84,17 @@ jobs:
       - name: Build, Tag, and Push docker image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: prj4-move-picture-pipeline
-          IMAGE_TAG: ${{ github.sha }}
+          REPOSITORY: frontend
+          IMAGE_TAG: latest
         run: |
-          aws eks update-kubeconfig --name prj4-cluster
-          export EXTERNALIP=$(kubectl get svc prj4-backend -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}{"\n"}{.status.loadBalancer.ingress[0].ip}')
+          aws eks update-kubeconfig --name cluster
+          export EXTERNALIP=$(kubectl get svc backend -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}{"\n"}{.status.loadBalancer.ingress[0].ip}')
           echo $EXTERNALIP
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg=REACT_APP_MOVIE_API_URL=http://$EXTERNALIP .
           docker images
 
-      # - name: Cache Docker image
-      #   uses: actions/cache@v3
-      #   with:
-      #     path: ~/docker-cache
-      #     key: docker-${{ github.sha }}-frontend
+      - name: Cache Docker image
+        uses: actions/cache@v3
+        with:
+          path: ~/docker-cache
+          key: docker-${{ github.sha }}-frontend
