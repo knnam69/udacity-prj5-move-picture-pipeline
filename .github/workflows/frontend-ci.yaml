@@ -1,25 +1,23 @@
 name: Frontend Continuous Integration
 
 on:
-  # This allows running on-demand
   workflow_dispatch:
   pull_request:
     branches:
       - main
     paths:
-      # This will only run on changes to the frontend code
-      - "frontend/**"
+      - "starter/frontend/**"
 env:
   NODE_VERSION: 18.x
 
 jobs:
 
   lint:
-    name: Frontend Linting
+    name: FE Linting
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./frontend
+        working-directory: ./starter/frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -28,7 +26,7 @@ jobs:
         uses: actions/cache@v3
         with:
           path: ~/.npm
-          key: npm-${{ hashFiles('frontend/package-lock.json') }}
+          key: npm-${{ hashFiles('starter/frontend/package-lock.json') }}
           restore-keys: |
             npm-
 
@@ -41,11 +39,11 @@ jobs:
           npm run lint -- --fix
 
   test:
-    name: Frontend Testing
+    name: FE Testing
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./frontend
+        working-directory: ./starter/frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -61,7 +59,7 @@ jobs:
     needs: [lint, test]
     defaults:
       run:
-        working-directory: ./frontend
+        working-directory: ./starter/frontend
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
@@ -86,17 +84,17 @@ jobs:
       - name: Build, Tag, and Push docker image
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          REPOSITORY: frontend
-          IMAGE_TAG: latest
+          REPOSITORY: prj4-move-picture-pipeline
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          aws eks update-kubeconfig --name cluster
-          export EXTERNALIP=$(kubectl get svc backend -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}{"\n"}{.status.loadBalancer.ingress[0].ip}')
+          aws eks update-kubeconfig --name prj4-cluster
+          export EXTERNALIP=$(kubectl get svc prj4-backend -o=jsonpath='{.status.loadBalancer.ingress[0].hostname}{"\n"}{.status.loadBalancer.ingress[0].ip}')
           echo $EXTERNALIP
           docker build -t $REGISTRY/$REPOSITORY:$IMAGE_TAG --build-arg=REACT_APP_MOVIE_API_URL=http://$EXTERNALIP .
           docker images
 
-      - name: Cache Docker image
-        uses: actions/cache@v3
-        with:
-          path: ~/docker-cache
-          key: docker-${{ github.sha }}-frontend
+      # - name: Cache Docker image
+      #   uses: actions/cache@v3
+      #   with:
+      #     path: ~/docker-cache
+      #     key: docker-${{ github.sha }}-frontend
