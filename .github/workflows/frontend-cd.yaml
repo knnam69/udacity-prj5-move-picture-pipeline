@@ -129,11 +129,6 @@ jobs:
         run: |
           aws eks update-kubeconfig --name cluster
 
-      # - name: Run init.sh
-      #   run:  |
-      #     ./init.sh || true
-      #   working-directory: ./setup
-
       - name: Set Docker image in Kustomize
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
